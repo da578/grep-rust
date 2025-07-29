@@ -38,6 +38,12 @@ pub struct Config {
     #[arg(short, long)]
     pub line_number: bool,
 
+    /// Flag to enable word-only matching. The pattern will only match
+    /// if it forms a whole word (bounded by non-word characters or)
+    /// start/end of line.
+    #[arg(short, long)]
+    pub word_regexp: bool,
+
     /// Specifies the number of lines to print before a matching line.
     /// This provides "leading context" for matches. If not specified, defaults to 0.
     #[arg(short = 'B', long, value_name = "NUM")]
@@ -60,7 +66,7 @@ mod tests {
         // This test would typically be more complex if Config had custom
         // parsing or default logic beyond what clap provides.
         // For now, we just ensure it compiles and can be created.
-        let args = vec!["grep", "test_query", "test_file.txt"];
+        let args = vec!["grep-rust", "test_query", "test_file.txt"];
         let config = Config::parse_from(args);
         assert_eq!(config.query, "test_query");
         assert_eq!(config.file_path, "test_file.txt");
@@ -72,7 +78,17 @@ mod tests {
 
     #[test]
     fn test_config_with_flags() {
-        let args = vec!["my_grep", "-i", "-l", "-B", "2", "-A", "3", "pattern", "file.log"];
+        let args = vec![
+            "grep-rust",
+            "-i",
+            "-l",
+            "-B",
+            "2",
+            "-A",
+            "3",
+            "pattern",
+            "file.log",
+        ];
         let config = Config::parse_from(args);
         assert_eq!(config.query, "pattern");
         assert_eq!(config.file_path, "file.log");
@@ -80,5 +96,13 @@ mod tests {
         assert!(config.line_number);
         assert_eq!(config.before_context, Some(2));
         assert_eq!(config.after_context, Some(3));
+    }
+
+    #[test]
+    fn test_config_with_word_regexp() {
+        let args = vec!["grep-rust", "-w", "word", "file.txt"];
+        let config = Config::parse_from(args);
+        assert!(config.word_regexp);
+        assert_eq!(config.query, "word");
     }
 }
